@@ -1,26 +1,49 @@
-# Candidate kit
+# Employee Attendance & Analytics API
 
-Read in this order:
+A robust, production-grade Attendance and Analytics REST API built with **Python 3.11+**, **FastAPI**, and **MongoDB**.
 
-1. `PROBLEM_STATEMENT.docx`: what you are asked to do, how it is evaluated.
-2. `openapi.yaml`: the API contract and the business rules (R1 - R10).
-3. `DATA_MODEL.md`: what is stored in MongoDB, with nine sample documents.
-4. `app/main.py`: the starter. Put **all** your code in this one file. It must start with `uvicorn app.main:app --port 8000`.
-5. `REVIEW.md`, `DECISIONS.md`: templates to fill in.
+## Features
 
-`sample_data/` holds the nine sample documents as MongoDB Extended JSON; `sample_seed.py` loads them. The grader's dataset is
-much larger and contains cases they do not show.
+- **Attendance Management:** Punch-in and punch-out operations with overnight shift handling, 10-minute grace window calculations, exact floor late minutes, and overtime thresholds.
+- **Concurrency & Idempotency:** Atomic CAS updates and unique compound index constraints preventing double-punches and race conditions under concurrent load.
+- **Regularization & Audit Trail:** Manual corrections with complete audit trails tracking timestamp, author, reason, and field-level change history.
+- **High-Performance Analytics:** 100% database-level MongoDB aggregation pipelines utilizing `$densify`, `$setWindowFields`, and `$rank` for monthly attendance, department summaries, late leaderboards, and moving-average trend analyses.
+- **Query Optimization & Observability:** Optimized compound indexes and an `/admin/explain/{endpoint}` route providing live `executionStats`.
 
-## Local setup
+## Setup & Running Locally
+
+### 1. Prerequisites
+- Python 3.11 or newer
+- MongoDB 6.0+ (Local Docker container or MongoDB Atlas)
+
+### 2. Installation
 ```bash
-python -m venv .venv && source .venv/bin/activate
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-cp .env.example .env            # set MONGO_URI / MONGO_DB (local docker: docker run -p 27017:27017 mongo:7)
+```
+
+### 3. Environment Configuration
+Create a `.env` file in the project root (never committed to git):
+```ini
+MONGO_URI=mongodb://localhost:27017
+MONGO_DB=attendance_db
+```
+
+### 4. Seed Sample Data (Optional)
+```bash
 python sample_seed.py
+```
+
+### 5. Start Server
+```bash
 uvicorn app.main:app --port 8000 --reload
 ```
-MongoDB **6.0 or newer** is required (the grader uses 7.0). MongoDB Atlas free tier (M0) works.
+Interactive Swagger documentation is available at `http://localhost:8000/docs`.
 
-## Submit
-A public Git repository with `app/main.py`, `requirements.txt`, `REVIEW.md`, `DECISIONS.md` and a short `README.md`.
-No `.env`, no secrets, no Dockerfile.
+## Project Structure
+- `app/main.py` - Complete FastAPI application and aggregation logic
+- `requirements.txt` - Project dependencies
+- `REVIEW.md` - Analysis and fixes for starter code defects
+- `DECISIONS.md` - Design decisions covering indexing, concurrency, and scaling
+- `sample_seed.py` - Database seeder for sample data
