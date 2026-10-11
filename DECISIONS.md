@@ -7,7 +7,7 @@ We created unique `{emp_code: 1}` on `employees` for identity lookups and unique
 Two simultaneous punch-in requests calculate the attendance date and attempt `insert_one`. MongoDB's unique index on `{emp_code: 1, date: 1}` guarantees atomicity at the storage engine level. Exactly one insert commits with 201 Created; the second triggers a `DuplicateKeyError`, which our exception handler intercepts to return HTTP 409 Conflict.
 
 3. **Ties.**
-The leaderboard uses MongoDB `$rank` inside `$setWindowFields` for competition ranking (1-2-2-4). Ties at the cutoff share the same rank and are ordered deterministically by `emp_code` ascending. `$limit` is applied after ranking.
+The leaderboard uses MongoDB `$rank` inside `$setWindowFields` for competition ranking (1-2-2-4). Because we filter by `rank <= limit` (rather than slicing with a row limit stage), all employees tied at or below the cutoff rank are returned (e.g. ranks [1, 2, 2] with limit=2 returns all three employees). Tied rows are ordered deterministically by `emp_code` ascending.
 
 4. **Headcount.**
 Department summary aggregates from `employees` first, filtering `joined_on <= month_end` to capture total headcount before performing a `$lookup` to `attendance_logs`. Employees with zero logs are retained in the base headcount.
